@@ -62,12 +62,12 @@ func patchAppAsar(dir string, isSystemElectron bool) (err error) {
 	var renamesDone [][]string
 	defer func() {
 		if err != nil && len(renamesDone) > 0 {
-			Log.Error("Failed to patch. Undoing partial patch")
+			Log.Error(T("Failed to patch. Undoing partial patch", "Не удалось пропатчить. Откатываю частичный патч"))
 			for _, rename := range renamesDone {
 				if innerErr := os.Rename(rename[1], rename[0]); innerErr != nil {
-					Log.Error("Failed to undo partial patch. This install is probably bricked.", innerErr)
+					Log.Error(T("Failed to undo partial patch. This install is probably bricked.", "Не удалось откатить. Установка, вероятно, сломана."), innerErr)
 				} else {
-					Log.Info("Successfully undid all changes")
+					Log.Info(T("Successfully undid all changes", "Изменения успешно откачены"))
 				}
 			}
 		}
@@ -100,7 +100,7 @@ func patchAppAsar(dir string, isSystemElectron bool) (err error) {
 }
 
 func (di *DiscordInstall) patch() error {
-	Log.Info("Patching " + di.path + "...")
+	Log.Info(T("Patching ", "Патчу ") + di.path + "...")
 	if LatestHash != InstalledHash {
 		if err := InstallLatestBuilds(); err != nil {
 			return nil // already shown dialog so don't return same error again
@@ -110,12 +110,12 @@ func (di *DiscordInstall) patch() error {
 	PreparePatch(di)
 
 	if di.isPatched {
-		Log.Info(di.path, "is already patched. Unpatching first...")
+		Log.Info(di.path, T("is already patched. Unpatching first...", "уже пропатчен. Сначала откатываю..."))
 		if err := di.unpatch(); err != nil {
 			if errors.Is(err, os.ErrPermission) {
 				return err
 			}
-			return errors.New("patch: Failed to unpatch already patched install '" + di.path + "':\n" + err.Error())
+			return errors.New(T("patch: Failed to unpatch already patched install '", "патч: не удалось откатить уже пропатченную установку '") + di.path + "':\n" + err.Error())
 		}
 	}
 
@@ -129,7 +129,7 @@ func (di *DiscordInstall) patch() error {
 		}
 	}
 
-	Log.Info("Successfully patched", di.path)
+	Log.Info(T("Successfully patched", "Успешно пропатчено"), di.path)
 	di.isPatched = true
 
 	if di.isFlatpak {
@@ -170,7 +170,7 @@ func (di *DiscordInstall) patch() error {
 			err = cmd.Run()
 		}
 		if err != nil {
-			return errors.New("Failed to grant Discord Flatpak access to " + FilesDir + ": " + err.Error())
+			return errors.New(T("Failed to grant Discord Flatpak access to ", "Не удалось дать Flatpak Discord доступ к ") + FilesDir + ": " + err.Error())
 		}
 	}
 	return nil
@@ -188,17 +188,17 @@ func unpatchAppAsar(dir string, isSystemElectron bool) (errOut error) {
 	var renamesDone [][]string
 	defer func() {
 		if errOut != nil && len(renamesDone) > 0 {
-			Log.Error("Failed to unpatch. Undoing partial unpatch")
+			Log.Error(T("Failed to unpatch. Undoing partial unpatch", "Не удалось откатить. Откатываю частичный откат"))
 			for _, rename := range renamesDone {
 				if innerErr := os.Rename(rename[1], rename[0]); innerErr != nil {
-					Log.Error("Failed to undo partial unpatch. This install is probably bricked.", innerErr)
+					Log.Error(T("Failed to undo partial unpatch. This install is probably bricked.", "Не удалось откатить. Установка, вероятно, сломана."), innerErr)
 				} else {
-					Log.Info("Successfully undid all changes")
+					Log.Info(T("Successfully undid all changes", "Изменения успешно откачены"))
 				}
 			}
 		} else if errOut == nil {
 			if innerErr := os.RemoveAll(appAsarTmp); innerErr != nil {
-				Log.Warn("Failed to delete temporary app.asar (patch folder) backup. This is whatever but you might want to delete it manually.", innerErr)
+				Log.Warn(T("Failed to delete temporary app.asar (patch folder) backup. This is whatever but you might want to delete it manually.", "Не удалось удалить временный бэкап app.asar. Не страшно, но можете удалить вручную."), innerErr)
 			}
 		}
 	}()
@@ -232,7 +232,7 @@ func unpatchAppAsar(dir string, isSystemElectron bool) (errOut error) {
 }
 
 func (di *DiscordInstall) unpatch() error {
-	Log.Info("Unpatching " + di.path + "...")
+	Log.Info(T("Unpatching ", "Откатываю ") + di.path + "...")
 
 	PreparePatch(di)
 
@@ -246,7 +246,7 @@ func (di *DiscordInstall) unpatch() error {
 		}
 	}
 
-	Log.Info("Successfully unpatched", di.path)
+	Log.Info(T("Successfully unpatched", "Успешно откачено"), di.path)
 	di.isPatched = false
 	return nil
 }

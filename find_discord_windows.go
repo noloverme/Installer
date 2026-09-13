@@ -78,7 +78,7 @@ func FindDiscords() []any {
 
 	appData := os.Getenv("LOCALAPPDATA")
 	if appData == "" {
-		Log.Error("%LOCALAPPDATA% is empty???????")
+		Log.Error(T("%LOCALAPPDATA% is empty???????", "%LOCALAPPDATA% пуст???????"))
 		return discords
 	}
 

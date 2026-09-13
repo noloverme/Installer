@@ -67,12 +67,12 @@ func CanUpdateSelf() bool {
 
 func UpdateSelf() error {
 	if !CanUpdateSelf() {
-		return errors.New("Cannot update self. Either no update available or macos")
+		return errors.New(T("Cannot update self. Either no update available or macos", "Невозможно обновиться: либо нет обновления, либо это macOS"))
 	}
 
 	url := GetInstallerDownloadLink()
 	if url == "" {
-		return errors.New("Failed to get installer download link")
+		return errors.New(T("Failed to get installer download link", "Не удалось получить ссылку на скачивание"))
 	}
 
 	Log.Debug("Updating self from", url)
@@ -92,7 +92,7 @@ func UpdateSelf() error {
 
 	tmp, err := os.CreateTemp(ownExeDir, "VencordInstallerUpdate")
 	if err != nil {
-		return fmt.Errorf("Failed to create tempfile: %w", err)
+		return fmt.Errorf(T("Failed to create tempfile: %w", "Не удалось создать временный файл: %w"), err)
 	}
 	defer func() {
 		_ = tmp.Close()
@@ -112,12 +112,12 @@ func UpdateSelf() error {
 
 	if err = os.Remove(ownExePath); err != nil {
 		if err = os.Rename(ownExePath, ownExePath+".old"); err != nil {
-			return fmt.Errorf("Failed to remove/rename own executable: %w", err)
+			return fmt.Errorf(T("Failed to remove/rename own executable: %w", "Не удалось удалить/переименовать свой исполняемый файл: %w"), err)
 		}
 	}
 
 	if err = os.Rename(tmp.Name(), ownExePath); err != nil {
-		return fmt.Errorf("Failed to replace self with updated executable. Please manually redownload the installer: %w", err)
+		return fmt.Errorf(T("Failed to replace self with updated executable. Please manually redownload the installer: %w", "Не удалось заменить себя обновлённым файлом. Скачайте установщик вручную: %w"), err)
 	}
 
 	return nil
@@ -136,7 +136,7 @@ func DeleteOldExecutable() {
 			break
 		}
 
-		Log.Warn("Failed to remove old executable. Retrying in 1 second.", err)
+		Log.Warn(T("Failed to remove old executable. Retrying in 1 second.", "Не удалось удалить старый файл. Повтор через секунду."), err)
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -156,11 +156,11 @@ func RelaunchSelf() error {
 
 	proc, err := os.StartProcess(os.Args[0], argv, attr)
 	if err != nil {
-		return fmt.Errorf("Failed to start new process: %w", err)
+		return fmt.Errorf(T("Failed to start new process: %w", "Не удалось запустить новый процесс: %w"), err)
 	}
 
 	if err = proc.Release(); err != nil {
-		return fmt.Errorf("Failed to release new process: %w", err)
+		return fmt.Errorf(T("Failed to release new process: %w", "Не удалось освободить новый процесс: %w"), err)
 	}
 
 	os.Exit(0)

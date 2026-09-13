@@ -161,34 +161,34 @@ func installLatestBuilds() (retErr error) {
 			ass := ass // Need to do this to not have the variable be overwritten halfway through
 			go func() {
 				defer wg.Done()
-				Log.Debug("Downloading file", ass.Name)
+				Log.Debug(T("Downloading file", "Скачиваю файл"), ass.Name)
 
 				res, err := http.Get(ass.DownloadURL)
 				if err == nil && res.StatusCode >= 300 {
 					err = errors.New(res.Status)
 				}
 				if err != nil {
-					Log.Error("Failed to download", ass.Name+":", err)
+					Log.Error(T("Failed to download", "Не удалось скачать"), ass.Name+":", err)
 					retErr = err
 					return
 				}
 				outFile := path.Join(FilesDir, ass.Name)
 				out, err := os.OpenFile(outFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 				if err != nil {
-					Log.Error("Failed to create", outFile+":", err)
+					Log.Error(T("Failed to create", "Не удалось создать"), outFile+":", err)
 					retErr = err
 					return
 				}
 				read, err := io.Copy(out, res.Body)
 				if err != nil {
-					Log.Error("Failed to download to", outFile+":", err)
+					Log.Error(T("Failed to download to", "Не удалось скачать в"), outFile+":", err)
 					retErr = err
 					return
 				}
 				contentLength := res.Header.Get("Content-Length")
 				expected := strconv.FormatInt(read, 10)
 				if expected != contentLength {
-					err = errors.New("Unexpected end of input. Content-Length was " + contentLength + ", but I only read " + expected)
+					err = errors.New(T("Unexpected end of input. Content-Length was ", "Неожиданный конец ввода. Content-Length был ") + contentLength + T(", but I only read ", ", а прочитано ") + expected)
 					Log.Error(err.Error())
 					retErr = err
 					return
@@ -204,7 +204,7 @@ func installLatestBuilds() (retErr error) {
 		return retErr
 	}
 	if downloadedFiles.Load() < 4 {
-		return errors.New("Couldn't find all required files")
+		return errors.New(T("Couldn't find all required files", "Не найдены все нужные файлы"))
 	}
 
 	Log.Debug("Done!")
