@@ -13,6 +13,7 @@ on:
 jobs:
   winget:
     name: Publish winget package
+    if: ${{ secrets.WINGET_PAT != '' }}
     runs-on: windows-latest
     steps:
       - name: Submit package to Winget Community Repo (Stable)
