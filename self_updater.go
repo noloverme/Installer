@@ -14,12 +14,36 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 	"time"
 	"vencordinstaller/buildinfo"
 )
 
 var IsSelfOutdated = false
 var SelfUpdateCheckDoneChan = make(chan bool, 1)
+
+func checkIfSelfOutdated(res *GithubRelease) bool {
+	// If exact tag matches, we are definitely up to date
+	if res.TagName == buildinfo.InstallerTag {
+		return false
+	}
+
+	// If remote is tagged "latest" or release name contains git commit hash
+	if buildinfo.InstallerGitHash != buildinfo.VersionUnknown && len(buildinfo.InstallerGitHash) >= 4 {
+		if strings.Contains(res.TagName, buildinfo.InstallerGitHash) || strings.Contains(res.Name, buildinfo.InstallerGitHash) {
+			return false
+		}
+	}
+
+	// If remote is tagged "latest" and release name contains our InstallerTag
+	if res.TagName == "latest" {
+		if buildinfo.InstallerTag != buildinfo.VersionUnknown && strings.Contains(res.Name, buildinfo.InstallerTag) {
+			return false
+		}
+	}
+
+	return true
+}
 
 func init() {
 	//goland:noinspection GoBoolExpressions
@@ -38,7 +62,7 @@ func init() {
 			Log.Warn("Failed to check for self updates:", err)
 			SelfUpdateCheckDoneChan <- false
 		} else {
-			IsSelfOutdated = res.TagName != buildinfo.InstallerTag
+			IsSelfOutdated = checkIfSelfOutdated(res)
 			Log.Debug("Is self outdated?", IsSelfOutdated)
 			SelfUpdateCheckDoneChan <- true
 		}
