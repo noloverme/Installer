@@ -104,8 +104,10 @@ func main() {
 
 	if *installFlag || *updateFlag {
 		if !<-GithubDoneChan {
-			die(T("Not "+Ternary(*installFlag, "installing", "updating")+" as fetching release data failed",
-				"Не "+Ternary(*installFlag, T("installing", "устанавливаю"), T("updating", "обновляю"))+": не удалось получить данные релиза"))
+			die(T(
+				"Not "+Ternary(*installFlag, "installing", "updating")+" as fetching release data failed. If this issue persists, see https://vencord.dev/support",
+				"Не "+Ternary(*installFlag, "устанавливаю", "обновляю")+": не удалось получить данные релиза. Если проблема сохраняется, обратитесь: https://vencord.dev/support",
+			))
 		}
 	}
 
@@ -211,7 +213,10 @@ func exitSuccess() {
 }
 
 func exitFailure() {
-	color.HiRed(T("❌ Failed!", "❌ Ошибка!"))
+	color.HiRed(T(
+		"❌ Failed! If this issue persists, see https://vencord.dev/support",
+		"❌ Ошибка! Если проблема сохраняется, обратитесь: https://vencord.dev/support",
+	))
 	exit(1)
 }
 
@@ -233,7 +238,10 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 				}
 			}
 		}
-		die(T("No Discord install found. Try manually specifying it with the --dir flag. Hint: snap is not supported", "Установка Discord не найдена. Укажите путь вручную через --dir. Подсказка: snap не поддерживается"))
+		die(T(
+			"No Discord install found. Before proceeding, make sure Discord is installed. snap is not supported!",
+			"Установка Discord не найдена. Перед продолжением убедитесь, что Discord установлен. snap не поддерживается!",
+		))
 	}
 
 	if branch != "" {
@@ -261,7 +269,7 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 	items := SliceMap(discords, func(d any) string {
 		install := d.(*DiscordInstall)
 		//goland:noinspection GoDeprecation
-		return fmt.Sprintf("%s - %s%s", strings.Title(install.branch), install.path, Ternary(install.isPatched, T(" [PATCHED]", " [ПАТЧЕН]"), ""))
+		return fmt.Sprintf("%s - %s%s", strings.Title(install.branch), install.path, Ternary(install.isPatched, T(" [Vencord Installed]", " [Vencord установлен]"), ""))
 	})
 	customLocationLabel := T("Custom Location", "Свой путь")
 	items = append(items, customLocationLabel)
@@ -296,6 +304,10 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 }
 
 func InstallLatestBuilds() error {
+	if IsDevInstall {
+		return nil
+	}
+
 	return installLatestBuilds()
 }
 
