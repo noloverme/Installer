@@ -13,10 +13,12 @@ on:
 jobs:
   winget:
     name: Publish winget package
-    if: ${{ secrets.WINGET_PAT != '' }}
     runs-on: windows-latest
+    env:
+      WINGET_PAT: ${{ secrets.WINGET_PAT }}
     steps:
       - name: Submit package to Winget Community Repo (Stable)
+        if: env.WINGET_PAT != ''
         uses: vedantmgoyal2009/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: Vendicated.Vencord
@@ -26,6 +28,7 @@ jobs:
           fork-user: shiggybot
 
       - name: Submit package to Winget Community Repo (PTB)
+        if: env.WINGET_PAT != ''
         uses: vedantmgoyal2009/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: Vendicated.Vencord.PTB
@@ -35,6 +38,7 @@ jobs:
           fork-user: shiggybot
 
       - name: Submit package to Winget Community Repo (Canary)
+        if: env.WINGET_PAT != ''
         uses: vedantmgoyal2009/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: Vendicated.Vencord.Canary

@@ -81,6 +81,13 @@ jobs:
     name: Build macOS DMG & CLI
     needs: prepare
     runs-on: macos-latest
+    env:
+      APPLE_SIGNING_CERT: ${{ secrets.APPLE_SIGNING_CERT }}
+      APPLE_SIGNING_CERT_PASSWORD: ${{ secrets.APPLE_SIGNING_CERT_PASSWORD }}
+      APPLE_IDENTITY_NAME: ${{ secrets.APPLE_IDENTITY_NAME }}
+      APPLE_ID_EMAIL: ${{ secrets.APPLE_ID_EMAIL }}
+      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      APPLE_ID_TEAM: ${{ secrets.APPLE_ID_TEAM }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -97,25 +104,25 @@ jobs:
         run: brew install pkg-config sdl2 create-dmg
 
       - name: Setup Certificates
-        if: ${{ secrets.APPLE_SIGNING_CERT != '' }}
+        if: env.APPLE_SIGNING_CERT != ''
         uses: apple-actions/import-codesign-certs@v3
         with:
-          p12-file-base64: ${{ secrets.APPLE_SIGNING_CERT }}
-          p12-password: ${{ secrets.APPLE_SIGNING_CERT_PASSWORD }}
+          p12-file-base64: ${{ env.APPLE_SIGNING_CERT }}
+          p12-password: ${{ env.APPLE_SIGNING_CERT_PASSWORD }}
 
       - name: Build
         run: |
           make ARCH=universal VERSION=${{ needs.prepare.outputs.version }}
-          IDENTITY="${{ secrets.APPLE_IDENTITY_NAME }}"
+          IDENTITY="$APPLE_IDENTITY_NAME"
           if [ -z "$IDENTITY" ]; then
             IDENTITY="-"
           fi
           make ARCH=universal GUI=1 DMG=1 IDENTITY="$IDENTITY" VERSION=${{ needs.prepare.outputs.version }}
 
       - name: Codesign and Notarize
-        if: ${{ secrets.APPLE_SIGNING_CERT != '' && secrets.APPLE_ID_EMAIL != '' }}
+        if: env.APPLE_SIGNING_CERT != '' && env.APPLE_ID_EMAIL != ''
         run: |
-          xcrun notarytool submit build/VencordInstaller.dmg --apple-id "${{ secrets.APPLE_ID_EMAIL }}" --password "${{ secrets.APPLE_ID_PASSWORD }}" --team-id "${{ secrets.APPLE_ID_TEAM }}" --wait
+          xcrun notarytool submit build/VencordInstaller.dmg --apple-id "$APPLE_ID_EMAIL" --password "$APPLE_ID_PASSWORD" --team-id "$APPLE_ID_TEAM" --wait
           xcrun stapler staple build/VencordInstaller.dmg
 
       - name: Upload artifact
